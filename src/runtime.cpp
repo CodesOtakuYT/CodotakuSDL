@@ -233,7 +233,7 @@ Shader Runtime::loadShader(
     const char *entrypoint) const
 {
     auto path = relativePath;
-    path.replace_extension(shaderExt_);
+    path += "." + shaderExt_;
     auto blob = loadFile(path);
     if (!blob) {
         throw SDLException(("Failed to load shader: " + path.string()).c_str());
@@ -287,24 +287,22 @@ Buffer Runtime::createBuffer(
     return createBuffer(usage, std::span<const Uint8>(static_cast<const Uint8 *>(data), size), belt);
 }
 
-Buffer Runtime::createVertexBuffer(Uint32 size) const
+GraphicsPipeline Runtime::loadPipeline(
+    const std::filesystem::path &shaderBasePath,
+    const VertexInputBuilder &vertexInput,
+    SDL_GPUTextureFormat colorTargetFormat,
+    const char *vertEntrypoint,
+    const char *fragEntrypoint) const
 {
-    return createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, size);
-}
+    auto vertPath = shaderBasePath;
+    vertPath += ".vert";
+    auto vert = loadShader(vertPath, SDL_GPU_SHADERSTAGE_VERTEX, vertEntrypoint);
 
-Buffer Runtime::createVertexBuffer(const void *data, size_t size, StagingBelt &belt) const
-{
-    return createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, data, size, belt);
-}
+    auto fragPath = shaderBasePath;
+    fragPath += ".frag";
+    auto frag = loadShader(fragPath, SDL_GPU_SHADERSTAGE_FRAGMENT, fragEntrypoint);
 
-Buffer Runtime::createIndexBuffer(Uint32 size) const
-{
-    return createBuffer(SDL_GPU_BUFFERUSAGE_INDEX, size);
-}
-
-Buffer Runtime::createIndexBuffer(const void *data, size_t size, StagingBelt &belt) const
-{
-    return createBuffer(SDL_GPU_BUFFERUSAGE_INDEX, data, size, belt);
+    return createPipeline(vert, frag, vertexInput, colorTargetFormat);
 }
 
 void Runtime::submitOneShot(std::move_only_function<void(SDL_GPUCommandBuffer *)> fn) const

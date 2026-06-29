@@ -63,9 +63,9 @@ target_link_libraries(triangle PRIVATE codotaku)
 add_custom_command(TARGET triangle POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:triangle>/examples"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/examples/triangle_vert.spv"
-        "${CMAKE_SOURCE_DIR}/examples/triangle_vert.dxil"
-        "${CMAKE_SOURCE_DIR}/examples/triangle_frag.spv"
-        "${CMAKE_SOURCE_DIR}/examples/triangle_frag.dxil"
+        "${CMAKE_SOURCE_DIR}/examples/triangle.vert.spv"
+        "${CMAKE_SOURCE_DIR}/examples/triangle.vert.dxil"
+        "${CMAKE_SOURCE_DIR}/examples/triangle.frag.spv"
+        "${CMAKE_SOURCE_DIR}/examples/triangle.frag.dxil"
         "$<TARGET_FILE_DIR:triangle>/examples/"
 )

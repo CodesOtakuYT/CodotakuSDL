@@ -36,15 +36,15 @@ class RenderPass
         SDL_BindGPUGraphicsPipeline(pass_, pipeline);
     }
 
-    void bindVertexBuffer(SDL_GPUBuffer *buffer, Uint32 slot = 0) noexcept
+    void bindVertexBuffer(SDL_GPUBuffer *buffer, Uint32 slot = 0, Uint32 offset = 0) noexcept
     {
-        SDL_GPUBufferBinding binding{ .buffer = buffer, .offset = 0 };
+        SDL_GPUBufferBinding binding{ .buffer = buffer, .offset = offset };
         SDL_BindGPUVertexBuffers(pass_, slot, &binding, 1);
     }
 
-    void bindIndexBuffer(SDL_GPUBuffer *buffer, SDL_GPUIndexElementSize elementSize) noexcept
+    void bindIndexBuffer(SDL_GPUBuffer *buffer, SDL_GPUIndexElementSize elementSize, Uint32 offset = 0) noexcept
     {
-        SDL_GPUBufferBinding binding{ .buffer = buffer, .offset = 0 };
+        SDL_GPUBufferBinding binding{ .buffer = buffer, .offset = offset };
         SDL_BindGPUIndexBuffer(pass_, &binding, elementSize);
     }
 

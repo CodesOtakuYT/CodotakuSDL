@@ -88,10 +88,12 @@ class Runtime
         const void *data, size_t size,
         StagingBelt &belt) const;
 
-    [[nodiscard]] Buffer createVertexBuffer(Uint32 size) const;
-    [[nodiscard]] Buffer createVertexBuffer(const void *data, size_t size, StagingBelt &belt) const;
-    [[nodiscard]] Buffer createIndexBuffer(Uint32 size) const;
-    [[nodiscard]] Buffer createIndexBuffer(const void *data, size_t size, StagingBelt &belt) const;
+    [[nodiscard]] GraphicsPipeline loadPipeline(
+        const std::filesystem::path &shaderBasePath,
+        const VertexInputBuilder &vertexInput,
+        SDL_GPUTextureFormat colorTargetFormat,
+        const char *vertEntrypoint = "VSMain",
+        const char *fragEntrypoint = "PSMain") const;
 
     [[nodiscard]] GraphicsPipeline createPipeline(
         const SDL_GPUGraphicsPipelineCreateInfo &info) const;
