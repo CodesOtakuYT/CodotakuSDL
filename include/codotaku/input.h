@@ -12,6 +12,7 @@ struct Input
     float mouseY = 0.0f;
     float mouseDX = 0.0f;
     float mouseDY = 0.0f;
+    float mouseWheel = 0.0f;
     bool mouseLeft = false;
 
     void handleEvent(const SDL_Event &event) noexcept
@@ -33,6 +34,9 @@ struct Input
                 mouseLeft = false;
             }
             break;
+        case SDL_EVENT_MOUSE_WHEEL:
+            mouseWheel += event.wheel.y;
+            break;
         }
     }
 
@@ -40,6 +44,7 @@ struct Input
     {
         mouseDX = 0.0f;
         mouseDY = 0.0f;
+        mouseWheel = 0.0f;
     }
 };
 
