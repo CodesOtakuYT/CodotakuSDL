@@ -20,8 +20,8 @@ int main() {
 
     const Uint32 indices[] = {0, 1, 2};
 
-    codotaku::StagingBelt belt(app.device());
-    codotaku::Geometry<Vertex> geom(app, belt, vertices, indices);
+    auto belt = app.createBelt();
+    auto geom = app.createGeometry<Vertex>(belt, vertices, indices);
     belt.flush();
 
     codotaku::VertexInputBuilder vib;

@@ -21,7 +21,7 @@ class Geometry
     Geometry &operator=(Geometry &&) = default;
 
     Geometry(
-        Runtime &runtime,
+        const Runtime &runtime,
         StagingBelt &belt,
         std::span<const Vertex> vertices,
         std::span<const Uint32> indices,
@@ -64,6 +64,16 @@ class Geometry
     Uint32 indexCount_ = 0;
     SDL_GPUIndexElementSize indexElementSize_ = SDL_GPU_INDEXELEMENTSIZE_32BIT;
 };
+
+template<typename Vertex>
+Geometry<Vertex> Runtime::createGeometry(
+    StagingBelt &belt,
+    std::span<const Vertex> vertices,
+    std::span<const Uint32> indices,
+    SDL_GPUIndexElementSize indexElementSize) const
+{
+    return Geometry<Vertex>(*this, belt, vertices, indices, indexElementSize);
+}
 
 } // namespace codotaku
 

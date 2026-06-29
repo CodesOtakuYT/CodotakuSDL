@@ -20,6 +20,8 @@
 namespace codotaku
 {
 
+template<typename Vertex> class Geometry;
+
 struct SDLException : std::runtime_error
 {
     explicit SDLException(const char *message);
@@ -103,6 +105,15 @@ class Runtime
         const Shader &fragmentShader,
         const VertexInputBuilder &vertexInput,
         SDL_GPUTextureFormat colorTargetFormat) const;
+
+    [[nodiscard]] StagingBelt createBelt(size_t initialCapacity = 4 * 1024 * 1024) const;
+
+    template<typename Vertex>
+    [[nodiscard]] Geometry<Vertex> createGeometry(
+        StagingBelt &belt,
+        std::span<const Vertex> vertices,
+        std::span<const Uint32> indices,
+        SDL_GPUIndexElementSize indexElementSize = SDL_GPU_INDEXELEMENTSIZE_32BIT) const;
 
     void submitOneShot(std::move_only_function<void(SDL_GPUCommandBuffer *)> fn) const;
 

@@ -297,6 +297,11 @@ Buffer Runtime::createBuffer(
     return createBuffer(usage, std::span<const Uint8>(static_cast<const Uint8 *>(data), size), belt);
 }
 
+StagingBelt Runtime::createBelt(size_t initialCapacity) const
+{
+    return StagingBelt(device_, initialCapacity);
+}
+
 GraphicsPipeline Runtime::loadPipeline(
     const std::filesystem::path &shaderBasePath,
     const VertexInputBuilder &vertexInput,
