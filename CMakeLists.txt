@@ -40,6 +40,7 @@ add_library(codotaku
     src/graphics_pipeline.cpp
     include/codotaku/camera2d.h
     include/codotaku/geometry.h
+    include/codotaku/input.h
     include/codotaku/polygon.h
 )
 

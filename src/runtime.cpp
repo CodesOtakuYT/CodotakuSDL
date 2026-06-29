@@ -166,6 +166,7 @@ void Runtime::run(std::move_only_function<void(FrameContext)> frame)
     while (running_) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            input_.handleEvent(event);
             if (event.type == SDL_EVENT_QUIT) {
                 running_ = false;
             }
@@ -190,6 +191,8 @@ void Runtime::run(std::move_only_function<void(FrameContext)> frame)
                 .swapchainTexture = tex,
                 .swapchainSize = { static_cast<int>(w), static_cast<int>(h) } });
         }
+
+        input_.endFrame();
 
         if (!SDL_SubmitGPUCommandBuffer(cmd)) {
             throw SDLException("SDL_SubmitGPUCommandBuffer failed");

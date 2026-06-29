@@ -12,6 +12,7 @@
 #include <codotaku/buffer.h>
 #include <codotaku/data_blob.h>
 #include <codotaku/graphics_pipeline.h>
+#include <codotaku/input.h>
 #include <codotaku/render_pass.h>
 #include <codotaku/runtime_info.h>
 #include <codotaku/shader.h>
@@ -64,6 +65,11 @@ class Runtime
     [[nodiscard]] SDL_GPUDevice *device() const noexcept;
     [[nodiscard]] SDL_GPUShaderFormat shaderFormat() const noexcept;
     [[nodiscard]] SDL_GPUTextureFormat swapchainFormat() const noexcept;
+
+    [[nodiscard]] const Input &input() const noexcept
+    {
+        return input_;
+    }
 
     [[nodiscard]] DataBlob loadFile(const std::filesystem::path &relativePath) const noexcept;
 
@@ -130,6 +136,7 @@ class Runtime
     SDL_GPUDevice *device_ = nullptr;
     SDL_GPUShaderFormat shaderFormat_ = SDL_GPU_SHADERFORMAT_SPIRV;
     RuntimeInfo info_;
+    Input input_;
     bool running_ = false;
 };
 

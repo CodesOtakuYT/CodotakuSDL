@@ -32,6 +32,13 @@ int main() {
     codotaku::Camera2D camera;
 
     app.run([&](const codotaku::FrameContext &ctx) {
+        auto &in = app.input();
+        if (in.mouseLeft) {
+            auto pos = camera.position();
+            pos -= glm::vec2(in.mouseDX, in.mouseDY) / camera.zoom();
+            camera.setPosition(pos);
+        }
+
         auto pass = ctx.beginRenderPass();
         auto vp = camera.viewProjection(ctx.swapchainSize);
         pass.pushVertexUniform(0, &vp, sizeof(vp));
