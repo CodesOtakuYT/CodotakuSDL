@@ -38,6 +38,7 @@ add_library(codotaku
     src/shader.cpp
     src/staging_belt.cpp
     src/graphics_pipeline.cpp
+    include/codotaku/camera2d.h
     include/codotaku/geometry.h
     include/codotaku/polygon.h
 )
