@@ -1,5 +1,8 @@
 #include <codotaku/runtime.h>
 #include <codotaku/geometry.h>
+#include <codotaku/polygon.h>
+
+#include <vector>
 
 struct Vertex {
     float x, y;
@@ -7,21 +10,14 @@ struct Vertex {
 };
 
 int main() {
-    codotaku::Runtime app({
-        .title = "Triangle",
-        .windowSize = {640, 480}
-    });
+    codotaku::Runtime app({ .title = "Triangle", .windowSize = {640, 480} });
 
-    const Vertex vertices[] = {
-        {0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
-        {0.5f, 0.5f, 0.0f, 1.0f, 0.0f},
-        {-0.5f, 0.5f, 0.0f, 0.0f, 1.0f},
-    };
-
-    const Uint32 indices[] = {0, 1, 2};
+    std::vector<Vertex> verts;
+    auto indices = codotaku::generatePolygon(3, 0.5f, 0,
+        [&](glm::vec2 p, uint32_t) { verts.push_back({p.x, p.y, 1, 0, 0}); });
 
     auto belt = app.createBelt();
-    auto geom = app.createGeometry<Vertex>(belt, vertices, indices);
+    auto geom = app.createGeometry<Vertex>(belt, verts, indices);
     belt.flush();
 
     codotaku::VertexInputBuilder vib;

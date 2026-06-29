@@ -39,6 +39,7 @@ add_library(codotaku
     src/staging_belt.cpp
     src/graphics_pipeline.cpp
     include/codotaku/geometry.h
+    include/codotaku/polygon.h
 )
 
 target_include_directories(codotaku
