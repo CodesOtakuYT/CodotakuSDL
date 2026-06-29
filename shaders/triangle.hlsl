@@ -11,15 +11,10 @@ struct VSOutput
     float3 color : COLOR;
 };
 
-VSOutput VSMain(
-    float2 position : POSITION,
-    float2 offset : TEXCOORD0,
-    float3 color : TEXCOORD1,
-    float scale : TEXCOORD2)
+VSOutput VSMain(float2 position : POSITION, float3 color : COLOR)
 {
     VSOutput output;
-    float2 worldPos = position * scale + offset;
-    output.position = mul(viewProj, float4(worldPos, 0.0f, 1.0f));
+    output.position = mul(viewProj, float4(position, 0.0f, 1.0f));
     output.color = color;
     return output;
 }
