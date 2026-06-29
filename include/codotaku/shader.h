@@ -17,7 +17,8 @@ class Shader
         SDL_GPUShaderFormat format,
         std::span<const Uint8> code,
         SDL_GPUShaderStage stage,
-        const char *entrypoint = "main");
+        const char *entrypoint = "main",
+        Uint32 numUniformBuffers = 0);
 
     Shader(SDL_GPUDevice *device, SDL_GPUShader *shader, bool owns = true) noexcept
         : device_(device), shader_(shader), owns_(owns)

@@ -30,7 +30,7 @@ RenderPass FrameContext::beginRenderPass(
         0.0f, 1.0f
     };
     SDL_SetGPUViewport(rp, &viewport);
-    return RenderPass(rp);
+    return RenderPass(cmd, rp);
 }
 
 RenderPass FrameContext::beginRenderPass(
@@ -49,7 +49,7 @@ RenderPass FrameContext::beginRenderPass(
         0.0f, 1.0f
     };
     SDL_SetGPUViewport(rp, &viewport);
-    return RenderPass(rp);
+    return RenderPass(cmd, rp);
 }
 
 Runtime::Runtime(const RuntimeInfo &info)
@@ -235,7 +235,8 @@ DataBlob Runtime::loadFile(const std::filesystem::path &relativePath) const noex
 Shader Runtime::loadShader(
     const std::filesystem::path &relativePath,
     SDL_GPUShaderStage stage,
-    const char *entrypoint) const
+    const char *entrypoint,
+    Uint32 numUniformBuffers) const
 {
     auto path = relativePath;
     path += "." + shaderExt_;
@@ -243,12 +244,13 @@ Shader Runtime::loadShader(
     if (!blob) {
         throw SDLException(("Failed to load shader: " + path.string()).c_str());
     }
-    return Shader(device_, shaderFormat_, blob.span(), stage, entrypoint);
+    return Shader(device_, shaderFormat_, blob.span(), stage, entrypoint, numUniformBuffers);
 }
 
 Shader Runtime::loadShader(
     const std::filesystem::path &relativePath,
-    const char *entrypoint) const
+    const char *entrypoint,
+    Uint32 numUniformBuffers) const
 {
     auto name = relativePath.filename().string();
     SDL_GPUShaderStage stage;
@@ -259,7 +261,7 @@ Shader Runtime::loadShader(
     } else {
         throw SDLException(("Cannot detect shader stage from: " + name).c_str());
     }
-    return loadShader(relativePath, stage, entrypoint);
+    return loadShader(relativePath, stage, entrypoint, numUniformBuffers);
 }
 
 Buffer Runtime::createBuffer(Uint32 size) const
@@ -307,15 +309,17 @@ GraphicsPipeline Runtime::loadPipeline(
     const VertexInputBuilder &vertexInput,
     SDL_GPUTextureFormat colorTargetFormat,
     const char *vertEntrypoint,
-    const char *fragEntrypoint) const
+    const char *fragEntrypoint,
+    Uint32 vertUniforms,
+    Uint32 fragUniforms) const
 {
     auto vertPath = shaderBasePath;
     vertPath += ".vert";
-    auto vert = loadShader(vertPath, SDL_GPU_SHADERSTAGE_VERTEX, vertEntrypoint);
+    auto vert = loadShader(vertPath, SDL_GPU_SHADERSTAGE_VERTEX, vertEntrypoint, vertUniforms);
 
     auto fragPath = shaderBasePath;
     fragPath += ".frag";
-    auto frag = loadShader(fragPath, SDL_GPU_SHADERSTAGE_FRAGMENT, fragEntrypoint);
+    auto frag = loadShader(fragPath, SDL_GPU_SHADERSTAGE_FRAGMENT, fragEntrypoint, fragUniforms);
 
     return createPipeline(vert, frag, vertexInput, colorTargetFormat);
 }

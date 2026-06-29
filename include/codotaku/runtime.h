@@ -70,11 +70,13 @@ class Runtime
     [[nodiscard]] Shader loadShader(
         const std::filesystem::path &relativePath,
         SDL_GPUShaderStage stage,
-        const char *entrypoint) const;
+        const char *entrypoint,
+        Uint32 numUniformBuffers = 0) const;
 
     [[nodiscard]] Shader loadShader(
         const std::filesystem::path &relativePath,
-        const char *entrypoint = "main") const;
+        const char *entrypoint = "main",
+        Uint32 numUniformBuffers = 0) const;
 
     [[nodiscard]] Buffer createBuffer(Uint32 size) const;
 
@@ -95,7 +97,9 @@ class Runtime
         const VertexInputBuilder &vertexInput,
         SDL_GPUTextureFormat colorTargetFormat,
         const char *vertEntrypoint = "VSMain",
-        const char *fragEntrypoint = "PSMain") const;
+        const char *fragEntrypoint = "PSMain",
+        Uint32 vertUniforms = 0,
+        Uint32 fragUniforms = 0) const;
 
     [[nodiscard]] GraphicsPipeline createPipeline(
         const SDL_GPUGraphicsPipelineCreateInfo &info) const;

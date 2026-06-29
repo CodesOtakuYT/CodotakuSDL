@@ -1,3 +1,4 @@
+#include <codotaku/camera2d.h>
 #include <codotaku/runtime.h>
 #include <codotaku/geometry.h>
 #include <codotaku/polygon.h>
@@ -25,10 +26,15 @@ int main() {
     vib.addAttribute(0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, 0);
     vib.addAttribute(0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, sizeof(float) * 2);
 
-    auto pipeline = app.loadPipeline("examples/triangle", vib, app.swapchainFormat());
+    auto pipeline = app.loadPipeline("examples/triangle", vib, app.swapchainFormat(),
+                                      "VSMain", "PSMain", 1, 0);
+
+    codotaku::Camera2D camera;
 
     app.run([&](const codotaku::FrameContext &ctx) {
         auto pass = ctx.beginRenderPass();
+        auto vp = camera.viewProjection(ctx.swapchainSize);
+        pass.pushVertexUniform(0, &vp, sizeof(vp));
         pass.bindPipeline(pipeline);
         geom.drawIndexed(pass);
     });

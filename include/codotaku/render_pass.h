@@ -14,8 +14,8 @@ class RenderPass
   public:
     RenderPass() = default;
 
-    explicit RenderPass(SDL_GPURenderPass *pass) noexcept
-        : pass_(pass)
+    RenderPass(SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass) noexcept
+        : cmdBuf_(cmdBuf), pass_(pass)
     {
     }
 
@@ -42,6 +42,16 @@ class RenderPass
         const Buffer &buffer,
         Uint32 offset = 0,
         SDL_GPUIndexElementSize elementSize = SDL_GPU_INDEXELEMENTSIZE_32BIT) noexcept;
+
+    void pushVertexUniform(Uint32 slotIndex, const void *data, Uint32 length) noexcept
+    {
+        SDL_PushGPUVertexUniformData(cmdBuf_, slotIndex, data, length);
+    }
+
+    void pushFragmentUniform(Uint32 slotIndex, const void *data, Uint32 length) noexcept
+    {
+        SDL_PushGPUFragmentUniformData(cmdBuf_, slotIndex, data, length);
+    }
 
     void bindFragmentSampler(Uint32 slot, SDL_GPUTexture *texture, SDL_GPUSampler *sampler) noexcept
     {
@@ -82,6 +92,7 @@ class RenderPass
     }
 
   private:
+    SDL_GPUCommandBuffer *cmdBuf_ = nullptr;
     SDL_GPURenderPass *pass_ = nullptr;
 };
 

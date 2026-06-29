@@ -1,3 +1,10 @@
+struct Camera
+{
+    float4x4 viewProj;
+};
+
+ConstantBuffer<Camera> camera : register(b0);
+
 struct VSOutput
 {
     float4 position : SV_Position;
@@ -7,7 +14,7 @@ struct VSOutput
 VSOutput VSMain(float2 position : POSITION, float3 color : COLOR)
 {
     VSOutput output;
-    output.position = float4(position, 0.0f, 1.0f);
+    output.position = mul(camera.viewProj, float4(position, 0.0f, 1.0f));
     output.color = color;
     return output;
 }

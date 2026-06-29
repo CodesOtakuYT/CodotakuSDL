@@ -10,7 +10,8 @@ Shader::Shader(
     SDL_GPUShaderFormat format,
     std::span<const Uint8> code,
     SDL_GPUShaderStage stage,
-    const char *entrypoint)
+    const char *entrypoint,
+    Uint32 numUniformBuffers)
     : device_(device), owns_(true)
 {
     SDL_GPUShaderCreateInfo ci{};
@@ -19,6 +20,7 @@ Shader::Shader(
     ci.entrypoint = entrypoint;
     ci.format = format;
     ci.stage = stage;
+    ci.num_uniform_buffers = numUniformBuffers;
 
     shader_ = SDL_CreateGPUShader(device, &ci);
     if (!shader_) {
