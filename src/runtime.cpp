@@ -1,6 +1,7 @@
 #include <codotaku/runtime.h>
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_video.h>
 
 namespace codotaku
@@ -88,6 +89,10 @@ Runtime::Runtime(const RuntimeInfo &info)
         throw SDLException("SDL_ClaimWindowForGPUDevice failed");
     }
 
+    if (auto *bp = SDL_GetBasePath()) {
+        basePath_ = std::filesystem::path(bp);
+    }
+
     if (!info_.vsync) {
         if (!SDL_SetGPUSwapchainParameters(
                 device_,
@@ -98,6 +103,18 @@ Runtime::Runtime(const RuntimeInfo &info)
             throw SDLException("SDL_SetGPUSwapchainParameters failed");
         }
     }
+
+    auto formats = SDL_GetGPUShaderFormats(device_);
+    if (formats & SDL_GPU_SHADERFORMAT_DXIL) {
+        shaderFormat_ = SDL_GPU_SHADERFORMAT_DXIL;
+        shaderExt_ = "dxil";
+    } else if (formats & SDL_GPU_SHADERFORMAT_MSL) {
+        shaderFormat_ = SDL_GPU_SHADERFORMAT_MSL;
+        shaderExt_ = "msl";
+    } else {
+        shaderFormat_ = SDL_GPU_SHADERFORMAT_SPIRV;
+        shaderExt_ = "spv";
+    }
 }
 
 Runtime::~Runtime()
@@ -106,7 +123,13 @@ Runtime::~Runtime()
 }
 
 Runtime::Runtime(Runtime &&other) noexcept
-    : window_(other.window_), device_(other.device_), info_(std::move(other.info_)), running_(other.running_)
+    : basePath_(std::move(other.basePath_)),
+      shaderExt_(std::move(other.shaderExt_)),
+      window_(other.window_),
+      device_(other.device_),
+      shaderFormat_(other.shaderFormat_),
+      info_(std::move(other.info_)),
+      running_(other.running_)
 {
     other.window_ = nullptr;
     other.device_ = nullptr;
@@ -117,8 +140,11 @@ Runtime &Runtime::operator=(Runtime &&other) noexcept
 {
     if (this != &other) {
         cleanup();
+        basePath_ = std::move(other.basePath_);
+        shaderExt_ = std::move(other.shaderExt_);
         window_ = other.window_;
         device_ = other.device_;
+        shaderFormat_ = other.shaderFormat_;
         info_ = std::move(other.info_);
         running_ = other.running_;
         other.window_ = nullptr;
@@ -186,6 +212,65 @@ SDL_Window *Runtime::window() const noexcept
 SDL_GPUDevice *Runtime::device() const noexcept
 {
     return device_;
+}
+
+SDL_GPUShaderFormat Runtime::shaderFormat() const noexcept
+{
+    return shaderFormat_;
+}
+
+DataBlob Runtime::loadFile(const std::filesystem::path &relativePath) const noexcept
+{
+    auto fullPath = basePath_.empty() ? relativePath : basePath_ / relativePath;
+    size_t size = 0;
+    auto *data = (Uint8 *)SDL_LoadFile(fullPath.string().c_str(), &size);
+    return DataBlob(data, size);
+}
+
+Shader Runtime::loadShader(
+    const std::filesystem::path &relativePath,
+    SDL_GPUShaderStage stage,
+    const char *entrypoint) const
+{
+    auto path = relativePath;
+    path.replace_extension(shaderExt_);
+    auto blob = loadFile(path);
+    if (!blob) {
+        throw SDLException(("Failed to load shader: " + path.string()).c_str());
+    }
+    return Shader(device_, shaderFormat_, blob.span(), stage, entrypoint);
+}
+
+Buffer Runtime::createBuffer(SDL_GPUBufferUsageFlags usage, Uint32 size) const
+{
+    SDL_GPUBufferCreateInfo info{};
+    info.usage = usage;
+    info.size = size;
+    auto *buf = SDL_CreateGPUBuffer(device_, &info);
+    if (!buf) {
+        throw SDLException("Failed to create GPU buffer");
+    }
+    return Buffer(device_, buf);
+}
+
+Buffer Runtime::createBuffer(
+    SDL_GPUBufferUsageFlags usage,
+    std::span<const Uint8> data,
+    StagingBelt &belt) const
+{
+    auto buf = createBuffer(usage, static_cast<Uint32>(data.size()));
+    belt.upload(buf.handle(), 0, data);
+    return buf;
+}
+
+void Runtime::submitOneShot(std::move_only_function<void(SDL_GPUCommandBuffer *)> fn) const
+{
+    auto *cmdBuf = SDL_AcquireGPUCommandBuffer(device_);
+    fn(cmdBuf);
+    if (!SDL_SubmitGPUCommandBuffer(cmdBuf)) {
+        throw SDLException("submitOneShot: failed to submit command buffer");
+    }
+    SDL_WaitForGPUIdle(device_);
 }
 
 void Runtime::cleanup() noexcept

@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC)
-    add_compile_options(/std:c++latest /permissive-)
+    add_compile_options(/std:c++latest /permissive- /EHsc)
 endif()
 
 include(FetchContent)
@@ -35,6 +35,8 @@ endif()
 
 add_library(codotaku
     src/runtime.cpp
+    src/shader.cpp
+    src/staging_belt.cpp
 )
 
 target_include_directories(codotaku
@@ -56,3 +58,13 @@ add_executable(triangle
 )
 
 target_link_libraries(triangle PRIVATE codotaku)
+
+add_custom_command(TARGET triangle POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:triangle>/examples"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/examples/triangle_vert.spv"
+        "${CMAKE_SOURCE_DIR}/examples/triangle_vert.dxil"
+        "${CMAKE_SOURCE_DIR}/examples/triangle_frag.spv"
+        "${CMAKE_SOURCE_DIR}/examples/triangle_frag.dxil"
+        "$<TARGET_FILE_DIR:triangle>/examples/"
+)
