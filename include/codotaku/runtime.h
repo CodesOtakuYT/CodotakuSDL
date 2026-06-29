@@ -11,6 +11,7 @@
 
 #include <codotaku/buffer.h>
 #include <codotaku/data_blob.h>
+#include <codotaku/graphics_pipeline.h>
 #include <codotaku/render_pass.h>
 #include <codotaku/runtime_info.h>
 #include <codotaku/shader.h>
@@ -62,6 +63,7 @@ class Runtime
     [[nodiscard]] SDL_Window *window() const noexcept;
     [[nodiscard]] SDL_GPUDevice *device() const noexcept;
     [[nodiscard]] SDL_GPUShaderFormat shaderFormat() const noexcept;
+    [[nodiscard]] SDL_GPUTextureFormat swapchainFormat() const noexcept;
 
     [[nodiscard]] DataBlob loadFile(const std::filesystem::path &relativePath) const noexcept;
 
@@ -70,12 +72,35 @@ class Runtime
         SDL_GPUShaderStage stage,
         const char *entrypoint) const;
 
+    [[nodiscard]] Shader loadShader(
+        const std::filesystem::path &relativePath,
+        const char *entrypoint = "main") const;
+
     [[nodiscard]] Buffer createBuffer(SDL_GPUBufferUsageFlags usage, Uint32 size) const;
 
     [[nodiscard]] Buffer createBuffer(
         SDL_GPUBufferUsageFlags usage,
         std::span<const Uint8> data,
         StagingBelt &belt) const;
+
+    [[nodiscard]] Buffer createBuffer(
+        SDL_GPUBufferUsageFlags usage,
+        const void *data, size_t size,
+        StagingBelt &belt) const;
+
+    [[nodiscard]] Buffer createVertexBuffer(Uint32 size) const;
+    [[nodiscard]] Buffer createVertexBuffer(const void *data, size_t size, StagingBelt &belt) const;
+    [[nodiscard]] Buffer createIndexBuffer(Uint32 size) const;
+    [[nodiscard]] Buffer createIndexBuffer(const void *data, size_t size, StagingBelt &belt) const;
+
+    [[nodiscard]] GraphicsPipeline createPipeline(
+        const SDL_GPUGraphicsPipelineCreateInfo &info) const;
+
+    [[nodiscard]] GraphicsPipeline createPipeline(
+        const Shader &vertexShader,
+        const Shader &fragmentShader,
+        const VertexInputBuilder &vertexInput,
+        SDL_GPUTextureFormat colorTargetFormat) const;
 
     void submitOneShot(std::move_only_function<void(SDL_GPUCommandBuffer *)> fn) const;
 

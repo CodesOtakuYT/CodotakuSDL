@@ -65,9 +65,19 @@ void StagingBelt::upload(SDL_GPUBuffer *dst, size_t dstOffset, std::span<const U
     bufferEntries_.push_back({ .data = data, .buffer = dst, .dstOffset = static_cast<Uint32>(dstOffset), .srcOffset = 0 });
 }
 
+void StagingBelt::upload(SDL_GPUBuffer *dst, size_t dstOffset, const void *data, size_t size)
+{
+    upload(dst, dstOffset, std::span<const Uint8>(static_cast<const Uint8 *>(data), size));
+}
+
 void StagingBelt::upload(const TextureUploadInfo &info, std::span<const Uint8> data)
 {
     textureEntries_.push_back({ .data = data, .info = info, .srcOffset = 0 });
+}
+
+void StagingBelt::upload(const TextureUploadInfo &info, const void *data, size_t size)
+{
+    upload(info, std::span<const Uint8>(static_cast<const Uint8 *>(data), size));
 }
 
 void StagingBelt::flush(SDL_GPUCommandBuffer *cmdBuf)

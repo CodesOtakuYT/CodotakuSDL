@@ -37,6 +37,7 @@ add_library(codotaku
     src/runtime.cpp
     src/shader.cpp
     src/staging_belt.cpp
+    src/graphics_pipeline.cpp
 )
 
 target_include_directories(codotaku

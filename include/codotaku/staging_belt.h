@@ -34,7 +34,9 @@ class StagingBelt
     StagingBelt &operator=(StagingBelt &&) noexcept;
 
     void upload(SDL_GPUBuffer *dst, size_t dstOffset, std::span<const Uint8> data);
+    void upload(SDL_GPUBuffer *dst, size_t dstOffset, const void *data, size_t size);
     void upload(const TextureUploadInfo &info, std::span<const Uint8> data);
+    void upload(const TextureUploadInfo &info, const void *data, size_t size);
 
     void flush(SDL_GPUCommandBuffer *cmdBuf);
     void flush();

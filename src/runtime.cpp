@@ -241,6 +241,22 @@ Shader Runtime::loadShader(
     return Shader(device_, shaderFormat_, blob.span(), stage, entrypoint);
 }
 
+Shader Runtime::loadShader(
+    const std::filesystem::path &relativePath,
+    const char *entrypoint) const
+{
+    auto name = relativePath.filename().string();
+    SDL_GPUShaderStage stage;
+    if (name.contains("_vert") || name.contains(".vert")) {
+        stage = SDL_GPU_SHADERSTAGE_VERTEX;
+    } else if (name.contains("_frag") || name.contains(".frag")) {
+        stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
+    } else {
+        throw SDLException(("Cannot detect shader stage from: " + name).c_str());
+    }
+    return loadShader(relativePath, stage, entrypoint);
+}
+
 Buffer Runtime::createBuffer(SDL_GPUBufferUsageFlags usage, Uint32 size) const
 {
     SDL_GPUBufferCreateInfo info{};
@@ -263,6 +279,34 @@ Buffer Runtime::createBuffer(
     return buf;
 }
 
+Buffer Runtime::createBuffer(
+    SDL_GPUBufferUsageFlags usage,
+    const void *data, size_t size,
+    StagingBelt &belt) const
+{
+    return createBuffer(usage, std::span<const Uint8>(static_cast<const Uint8 *>(data), size), belt);
+}
+
+Buffer Runtime::createVertexBuffer(Uint32 size) const
+{
+    return createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, size);
+}
+
+Buffer Runtime::createVertexBuffer(const void *data, size_t size, StagingBelt &belt) const
+{
+    return createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, data, size, belt);
+}
+
+Buffer Runtime::createIndexBuffer(Uint32 size) const
+{
+    return createBuffer(SDL_GPU_BUFFERUSAGE_INDEX, size);
+}
+
+Buffer Runtime::createIndexBuffer(const void *data, size_t size, StagingBelt &belt) const
+{
+    return createBuffer(SDL_GPU_BUFFERUSAGE_INDEX, data, size, belt);
+}
+
 void Runtime::submitOneShot(std::move_only_function<void(SDL_GPUCommandBuffer *)> fn) const
 {
     auto *cmdBuf = SDL_AcquireGPUCommandBuffer(device_);
@@ -271,6 +315,34 @@ void Runtime::submitOneShot(std::move_only_function<void(SDL_GPUCommandBuffer *)
         throw SDLException("submitOneShot: failed to submit command buffer");
     }
     SDL_WaitForGPUIdle(device_);
+}
+
+SDL_GPUTextureFormat Runtime::swapchainFormat() const noexcept
+{
+    return SDL_GetGPUSwapchainTextureFormat(device_, window_);
+}
+
+GraphicsPipeline Runtime::createPipeline(const SDL_GPUGraphicsPipelineCreateInfo &info) const
+{
+    return GraphicsPipeline(device_, info);
+}
+
+GraphicsPipeline Runtime::createPipeline(
+    const Shader &vertexShader,
+    const Shader &fragmentShader,
+    const VertexInputBuilder &vertexInput,
+    SDL_GPUTextureFormat colorTargetFormat) const
+{
+    SDL_GPUColorTargetDescription colorTarget{ .format = colorTargetFormat };
+
+    SDL_GPUGraphicsPipelineCreateInfo pi{};
+    pi.vertex_shader = vertexShader.handle();
+    pi.fragment_shader = fragmentShader.handle();
+    pi.vertex_input_state = vertexInput.build();
+    pi.target_info.color_target_descriptions = &colorTarget;
+    pi.target_info.num_color_targets = 1;
+
+    return GraphicsPipeline(device_, pi);
 }
 
 void Runtime::cleanup() noexcept
