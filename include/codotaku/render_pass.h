@@ -3,11 +3,11 @@
 
 #include <SDL3/SDL_gpu.h>
 
+#include <codotaku/buffer.h>
+#include <codotaku/graphics_pipeline.h>
+
 namespace codotaku
 {
-
-class Buffer;
-class GraphicsPipeline;
 
 class RenderPass
 {

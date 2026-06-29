@@ -22,6 +22,7 @@ class Geometry
 
     Geometry(
         Runtime &runtime,
+        StagingBelt &belt,
         std::span<const Vertex> vertices,
         std::span<const Uint32> indices,
         SDL_GPUIndexElementSize indexElementSize = SDL_GPU_INDEXELEMENTSIZE_32BIT)
@@ -32,18 +33,8 @@ class Geometry
         auto vertSize = static_cast<Uint32>(vertices.size_bytes());
         auto idxSize = static_cast<Uint32>(indices.size_bytes());
         buffer_ = runtime.createBuffer(vertSize + idxSize);
-    }
-
-    void upload(
-        StagingBelt &belt,
-        std::span<const Vertex> vertices,
-        std::span<const Uint32> indices)
-    {
-        vertexCount_ = static_cast<Uint32>(vertices.size());
-        indexCount_ = static_cast<Uint32>(indices.size());
-        auto vertSize = static_cast<Uint32>(vertices.size_bytes());
         belt.upload(buffer_, 0, vertices.data(), vertSize);
-        belt.upload(buffer_, vertSize, indices.data(), indices.size_bytes());
+        belt.upload(buffer_, vertSize, indices.data(), idxSize);
     }
 
     void bind(RenderPass &pass) const
