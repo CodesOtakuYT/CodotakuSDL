@@ -39,7 +39,8 @@ int main() {
         }
         if (in.mouseLeft) {
             auto pos = camera.position();
-            pos -= glm::vec2(in.mouseDX, -in.mouseDY) / camera.zoom();
+            pos.x -= in.mouseDX;
+            pos.y += in.mouseDY;
             camera.setPosition(pos);
         }
 

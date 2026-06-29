@@ -198,8 +198,6 @@ void Runtime::run(std::move_only_function<void(FrameContext)> frame)
             throw SDLException("SDL_SubmitGPUCommandBuffer failed");
         }
     }
-
-    SDL_WaitForGPUIdle(device_);
 }
 
 void Runtime::requestQuit() noexcept
