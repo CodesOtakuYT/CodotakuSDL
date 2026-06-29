@@ -14,7 +14,7 @@ int main() {
     codotaku::Runtime app({ .title = "Triangle", .windowSize = {640, 480} });
 
     std::vector<Vertex> verts;
-    auto indices = codotaku::generatePolygon(3, 0.5f, 0,
+    auto indices = codotaku::generatePolygon(3, 200.0f, 0,
         [&](glm::vec2 p, uint32_t) { verts.push_back({p.x, p.y, 1, 0, 0}); });
 
     auto belt = app.createBelt();
