@@ -5,17 +5,44 @@ namespace codotaku
 {
 
 GraphicsPipeline::GraphicsPipeline(SDL_GPUDevice *device, const SDL_GPUGraphicsPipelineCreateInfo &info)
+    : device_(device), owns_(true)
 {
     pipeline_ = SDL_CreateGPUGraphicsPipeline(device, &info);
     if (!pipeline_) {
         throw SDLException("Failed to create graphics pipeline");
     }
-    device_ = device;
 }
 
 GraphicsPipeline::~GraphicsPipeline() noexcept
 {
-    if (pipeline_) {
+    release();
+}
+
+GraphicsPipeline::GraphicsPipeline(GraphicsPipeline &&other) noexcept
+    : device_(other.device_), pipeline_(other.pipeline_), owns_(other.owns_)
+{
+    other.device_ = nullptr;
+    other.pipeline_ = nullptr;
+    other.owns_ = false;
+}
+
+GraphicsPipeline &GraphicsPipeline::operator=(GraphicsPipeline &&other) noexcept
+{
+    if (this != &other) {
+        release();
+        device_ = other.device_;
+        pipeline_ = other.pipeline_;
+        owns_ = other.owns_;
+        other.device_ = nullptr;
+        other.pipeline_ = nullptr;
+        other.owns_ = false;
+    }
+    return *this;
+}
+
+void GraphicsPipeline::release() noexcept
+{
+    if (owns_ && pipeline_) {
         SDL_ReleaseGPUGraphicsPipeline(device_, pipeline_);
     }
 }

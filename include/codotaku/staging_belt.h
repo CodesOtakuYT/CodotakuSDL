@@ -9,6 +9,8 @@
 namespace codotaku
 {
 
+class Buffer;
+
 struct TextureUploadInfo
 {
     SDL_GPUTexture *texture;
@@ -33,8 +35,8 @@ class StagingBelt
     StagingBelt(StagingBelt &&) noexcept;
     StagingBelt &operator=(StagingBelt &&) noexcept;
 
-    void upload(SDL_GPUBuffer *dst, size_t dstOffset, std::span<const Uint8> data);
-    void upload(SDL_GPUBuffer *dst, size_t dstOffset, const void *data, size_t size);
+    void upload(const Buffer &dst, size_t dstOffset, std::span<const Uint8> data);
+    void upload(const Buffer &dst, size_t dstOffset, const void *data, size_t size);
     void upload(const TextureUploadInfo &info, std::span<const Uint8> data);
     void upload(const TextureUploadInfo &info, const void *data, size_t size);
 

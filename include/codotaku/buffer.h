@@ -11,15 +11,15 @@ class Buffer
   public:
     Buffer() noexcept = default;
 
-    Buffer(SDL_GPUDevice *device, SDL_GPUBuffer *buffer) noexcept
-        : device_(device), buffer_(buffer)
+    Buffer(SDL_GPUDevice *device, SDL_GPUBuffer *handle, bool owns = true, Uint32 size = 0) noexcept
+        : device_(device), handle_(handle), owns_(owns), size_(size)
     {
     }
 
     ~Buffer() noexcept
     {
-        if (buffer_) {
-            SDL_ReleaseGPUBuffer(device_, buffer_);
+        if (owns_ && handle_) {
+            SDL_ReleaseGPUBuffer(device_, handle_);
         }
     }
 
@@ -27,34 +27,47 @@ class Buffer
     Buffer &operator=(const Buffer &) = delete;
 
     Buffer(Buffer &&other) noexcept
-        : device_(other.device_), buffer_(other.buffer_)
+        : device_(other.device_), handle_(other.handle_), owns_(other.owns_), size_(other.size_)
     {
         other.device_ = nullptr;
-        other.buffer_ = nullptr;
+        other.handle_ = nullptr;
+        other.owns_ = false;
+        other.size_ = 0;
     }
 
     Buffer &operator=(Buffer &&other) noexcept
     {
         if (this != &other) {
-            if (buffer_) {
-                SDL_ReleaseGPUBuffer(device_, buffer_);
+            if (owns_ && handle_) {
+                SDL_ReleaseGPUBuffer(device_, handle_);
             }
             device_ = other.device_;
-            buffer_ = other.buffer_;
+            handle_ = other.handle_;
+            owns_ = other.owns_;
+            size_ = other.size_;
             other.device_ = nullptr;
-            other.buffer_ = nullptr;
+            other.handle_ = nullptr;
+            other.owns_ = false;
+            other.size_ = 0;
         }
         return *this;
     }
 
     [[nodiscard]] SDL_GPUBuffer *handle() const noexcept
     {
-        return buffer_;
+        return handle_;
+    }
+
+    [[nodiscard]] Uint32 size() const noexcept
+    {
+        return size_;
     }
 
   private:
     SDL_GPUDevice *device_ = nullptr;
-    SDL_GPUBuffer *buffer_ = nullptr;
+    SDL_GPUBuffer *handle_ = nullptr;
+    bool owns_ = false;
+    Uint32 size_ = 0;
 };
 
 } // namespace codotaku

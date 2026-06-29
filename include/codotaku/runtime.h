@@ -39,8 +39,6 @@ struct FrameContext
     [[nodiscard]] RenderPass beginRenderPass(
         std::span<const SDL_GPUColorTargetInfo> colorTargets,
         const SDL_GPUDepthStencilTargetInfo *depthStencil = nullptr) const noexcept;
-
-    void setViewport(SDL_GPURenderPass *pass) const noexcept;
 };
 
 class Runtime
@@ -75,6 +73,8 @@ class Runtime
     [[nodiscard]] Shader loadShader(
         const std::filesystem::path &relativePath,
         const char *entrypoint = "main") const;
+
+    [[nodiscard]] Buffer createBuffer(Uint32 size) const;
 
     [[nodiscard]] Buffer createBuffer(SDL_GPUBufferUsageFlags usage, Uint32 size) const;
 

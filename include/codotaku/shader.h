@@ -19,29 +19,18 @@ class Shader
         SDL_GPUShaderStage stage,
         const char *entrypoint = "main");
 
+    Shader(SDL_GPUDevice *device, SDL_GPUShader *shader, bool owns = true) noexcept
+        : device_(device), shader_(shader), owns_(owns)
+    {
+    }
+
     ~Shader() noexcept;
 
     Shader(const Shader &) = delete;
     Shader &operator=(const Shader &) = delete;
 
-    Shader(Shader &&other) noexcept
-        : device_(other.device_), shader_(other.shader_)
-    {
-        other.device_ = nullptr;
-        other.shader_ = nullptr;
-    }
-
-    Shader &operator=(Shader &&other) noexcept
-    {
-        if (this != &other) {
-            SDL_ReleaseGPUShader(device_, shader_);
-            device_ = other.device_;
-            shader_ = other.shader_;
-            other.device_ = nullptr;
-            other.shader_ = nullptr;
-        }
-        return *this;
-    }
+    Shader(Shader &&other) noexcept;
+    Shader &operator=(Shader &&other) noexcept;
 
     [[nodiscard]] SDL_GPUShader *handle() const noexcept
     {
@@ -49,8 +38,11 @@ class Shader
     }
 
   private:
+    void release() noexcept;
+
     SDL_GPUDevice *device_ = nullptr;
     SDL_GPUShader *shader_ = nullptr;
+    bool owns_ = false;
 };
 
 } // namespace codotaku

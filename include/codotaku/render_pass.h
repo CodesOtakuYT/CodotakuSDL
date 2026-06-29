@@ -6,6 +6,9 @@
 namespace codotaku
 {
 
+class Buffer;
+class GraphicsPipeline;
+
 class RenderPass
 {
   public:
@@ -31,22 +34,14 @@ class RenderPass
         return pass_;
     }
 
-    void bindPipeline(SDL_GPUGraphicsPipeline *pipeline) noexcept
-    {
-        SDL_BindGPUGraphicsPipeline(pass_, pipeline);
-    }
+    void bindPipeline(const GraphicsPipeline &pipeline) noexcept;
 
-    void bindVertexBuffer(SDL_GPUBuffer *buffer, Uint32 slot = 0, Uint32 offset = 0) noexcept
-    {
-        SDL_GPUBufferBinding binding{ .buffer = buffer, .offset = offset };
-        SDL_BindGPUVertexBuffers(pass_, slot, &binding, 1);
-    }
+    void bindVertexBuffer(const Buffer &buffer, Uint32 slot = 0, Uint32 offset = 0) noexcept;
 
-    void bindIndexBuffer(SDL_GPUBuffer *buffer, SDL_GPUIndexElementSize elementSize, Uint32 offset = 0) noexcept
-    {
-        SDL_GPUBufferBinding binding{ .buffer = buffer, .offset = offset };
-        SDL_BindGPUIndexBuffer(pass_, &binding, elementSize);
-    }
+    void bindIndexBuffer(
+        const Buffer &buffer,
+        Uint32 offset = 0,
+        SDL_GPUIndexElementSize elementSize = SDL_GPU_INDEXELEMENTSIZE_32BIT) noexcept;
 
     void bindFragmentSampler(Uint32 slot, SDL_GPUTexture *texture, SDL_GPUSampler *sampler) noexcept
     {
@@ -89,6 +84,23 @@ class RenderPass
   private:
     SDL_GPURenderPass *pass_ = nullptr;
 };
+
+inline void RenderPass::bindPipeline(const GraphicsPipeline &pipeline) noexcept
+{
+    SDL_BindGPUGraphicsPipeline(pass_, pipeline.handle());
+}
+
+inline void RenderPass::bindVertexBuffer(const Buffer &buffer, Uint32 slot, Uint32 offset) noexcept
+{
+    SDL_GPUBufferBinding binding{ .buffer = buffer.handle(), .offset = offset };
+    SDL_BindGPUVertexBuffers(pass_, slot, &binding, 1);
+}
+
+inline void RenderPass::bindIndexBuffer(const Buffer &buffer, Uint32 offset, SDL_GPUIndexElementSize elementSize) noexcept
+{
+    SDL_GPUBufferBinding binding{ .buffer = buffer.handle(), .offset = offset };
+    SDL_BindGPUIndexBuffer(pass_, &binding, elementSize);
+}
 
 } // namespace codotaku
 

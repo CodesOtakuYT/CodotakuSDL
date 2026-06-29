@@ -1,4 +1,5 @@
 #include <codotaku/runtime.h>
+#include <codotaku/geometry.h>
 
 struct Vertex {
     float x, y;
@@ -17,17 +18,11 @@ int main() {
         {-0.5f, 0.5f, 0.0f, 0.0f, 1.0f},
     };
 
-    const Uint16 indices[] = {0, 1, 2};
-
-    constexpr size_t vertSize = sizeof(vertices);
-    constexpr size_t indexSize = sizeof(indices);
+    const Uint32 indices[] = {0, 1, 2};
 
     codotaku::StagingBelt belt(app.device());
-    auto buf = app.createBuffer(
-        SDL_GPU_BUFFERUSAGE_VERTEX | SDL_GPU_BUFFERUSAGE_INDEX,
-        static_cast<Uint32>(vertSize + indexSize));
-    belt.upload(buf.handle(), 0, vertices, vertSize);
-    belt.upload(buf.handle(), vertSize, indices, indexSize);
+    codotaku::Geometry<Vertex> geom(app, vertices, indices);
+    geom.upload(belt, vertices, indices);
     belt.flush();
 
     codotaku::VertexInputBuilder vib;
@@ -38,11 +33,8 @@ int main() {
     auto pipeline = app.loadPipeline("examples/triangle", vib, app.swapchainFormat());
 
     app.run([&](const codotaku::FrameContext &ctx) {
-        auto pass = ctx.beginRenderPass({0.0f, 0.0f, 0.0f, 1.0f});
-        pass.bindPipeline(pipeline.handle());
-        pass.bindVertexBuffer(buf.handle(), 0, 0);
-        pass.bindIndexBuffer(buf.handle(), SDL_GPU_INDEXELEMENTSIZE_16BIT, vertSize);
-        pass.setViewport(0.0f, 0.0f, 640.0f, 480.0f);
-        pass.drawIndexed(3, 1, 0, 0, 0);
+        auto pass = ctx.beginRenderPass();
+        pass.bindPipeline(pipeline);
+        geom.drawIndexed(pass);
     });
 }

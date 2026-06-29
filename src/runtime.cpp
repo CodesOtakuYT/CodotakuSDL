@@ -22,29 +22,34 @@ RenderPass FrameContext::beginRenderPass(
     target.clear_color = clearColor;
     target.load_op = loadOp;
     target.store_op = storeOp;
-    return RenderPass(SDL_BeginGPURenderPass(cmd, &target, 1, nullptr));
-}
-
-RenderPass FrameContext::beginRenderPass(
-    std::span<const SDL_GPUColorTargetInfo> colorTargets,
-    const SDL_GPUDepthStencilTargetInfo *depthStencil) const noexcept
-{
-    return RenderPass(SDL_BeginGPURenderPass(
-        cmd,
-        colorTargets.data(),
-        static_cast<Uint32>(colorTargets.size()),
-        depthStencil));
-}
-
-void FrameContext::setViewport(SDL_GPURenderPass *pass) const noexcept
-{
+    auto *rp = SDL_BeginGPURenderPass(cmd, &target, 1, nullptr);
     SDL_GPUViewport viewport{
         0.0f, 0.0f,
         static_cast<float>(swapchainSize.x),
         static_cast<float>(swapchainSize.y),
         0.0f, 1.0f
     };
-    SDL_SetGPUViewport(pass, &viewport);
+    SDL_SetGPUViewport(rp, &viewport);
+    return RenderPass(rp);
+}
+
+RenderPass FrameContext::beginRenderPass(
+    std::span<const SDL_GPUColorTargetInfo> colorTargets,
+    const SDL_GPUDepthStencilTargetInfo *depthStencil) const noexcept
+{
+    auto *rp = SDL_BeginGPURenderPass(
+        cmd,
+        colorTargets.data(),
+        static_cast<Uint32>(colorTargets.size()),
+        depthStencil);
+    SDL_GPUViewport viewport{
+        0.0f, 0.0f,
+        static_cast<float>(swapchainSize.x),
+        static_cast<float>(swapchainSize.y),
+        0.0f, 1.0f
+    };
+    SDL_SetGPUViewport(rp, &viewport);
+    return RenderPass(rp);
 }
 
 Runtime::Runtime(const RuntimeInfo &info)
@@ -257,6 +262,11 @@ Shader Runtime::loadShader(
     return loadShader(relativePath, stage, entrypoint);
 }
 
+Buffer Runtime::createBuffer(Uint32 size) const
+{
+    return createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX | SDL_GPU_BUFFERUSAGE_INDEX, size);
+}
+
 Buffer Runtime::createBuffer(SDL_GPUBufferUsageFlags usage, Uint32 size) const
 {
     SDL_GPUBufferCreateInfo info{};
@@ -266,7 +276,7 @@ Buffer Runtime::createBuffer(SDL_GPUBufferUsageFlags usage, Uint32 size) const
     if (!buf) {
         throw SDLException("Failed to create GPU buffer");
     }
-    return Buffer(device_, buf);
+    return Buffer(device_, buf, true, size);
 }
 
 Buffer Runtime::createBuffer(
@@ -275,7 +285,7 @@ Buffer Runtime::createBuffer(
     StagingBelt &belt) const
 {
     auto buf = createBuffer(usage, static_cast<Uint32>(data.size()));
-    belt.upload(buf.handle(), 0, data);
+    belt.upload(buf, 0, data);
     return buf;
 }
 

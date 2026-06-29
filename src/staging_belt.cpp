@@ -1,4 +1,5 @@
 #include <codotaku/staging_belt.h>
+#include <codotaku/buffer.h>
 #include <codotaku/runtime.h>
 #include <cstring>
 
@@ -60,12 +61,12 @@ StagingBelt &StagingBelt::operator=(StagingBelt &&other) noexcept
     return *this;
 }
 
-void StagingBelt::upload(SDL_GPUBuffer *dst, size_t dstOffset, std::span<const Uint8> data)
+void StagingBelt::upload(const Buffer &dst, size_t dstOffset, std::span<const Uint8> data)
 {
-    bufferEntries_.push_back({ .data = data, .buffer = dst, .dstOffset = static_cast<Uint32>(dstOffset), .srcOffset = 0 });
+    bufferEntries_.push_back({ .data = data, .buffer = dst.handle(), .dstOffset = static_cast<Uint32>(dstOffset), .srcOffset = 0 });
 }
 
-void StagingBelt::upload(SDL_GPUBuffer *dst, size_t dstOffset, const void *data, size_t size)
+void StagingBelt::upload(const Buffer &dst, size_t dstOffset, const void *data, size_t size)
 {
     upload(dst, dstOffset, std::span<const Uint8>(static_cast<const Uint8 *>(data), size));
 }

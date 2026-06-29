@@ -38,6 +38,7 @@ add_library(codotaku
     src/shader.cpp
     src/staging_belt.cpp
     src/graphics_pipeline.cpp
+    include/codotaku/geometry.h
 )
 
 target_include_directories(codotaku

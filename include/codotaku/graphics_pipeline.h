@@ -14,31 +14,18 @@ class GraphicsPipeline
 
     GraphicsPipeline(SDL_GPUDevice *device, const SDL_GPUGraphicsPipelineCreateInfo &info);
 
+    GraphicsPipeline(SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline, bool owns = true) noexcept
+        : device_(device), pipeline_(pipeline), owns_(owns)
+    {
+    }
+
     ~GraphicsPipeline() noexcept;
 
     GraphicsPipeline(const GraphicsPipeline &) = delete;
     GraphicsPipeline &operator=(const GraphicsPipeline &) = delete;
 
-    GraphicsPipeline(GraphicsPipeline &&other) noexcept
-        : device_(other.device_), pipeline_(other.pipeline_)
-    {
-        other.device_ = nullptr;
-        other.pipeline_ = nullptr;
-    }
-
-    GraphicsPipeline &operator=(GraphicsPipeline &&other) noexcept
-    {
-        if (this != &other) {
-            if (pipeline_) {
-                SDL_ReleaseGPUGraphicsPipeline(device_, pipeline_);
-            }
-            device_ = other.device_;
-            pipeline_ = other.pipeline_;
-            other.device_ = nullptr;
-            other.pipeline_ = nullptr;
-        }
-        return *this;
-    }
+    GraphicsPipeline(GraphicsPipeline &&other) noexcept;
+    GraphicsPipeline &operator=(GraphicsPipeline &&other) noexcept;
 
     [[nodiscard]] SDL_GPUGraphicsPipeline *handle() const noexcept
     {
@@ -46,8 +33,11 @@ class GraphicsPipeline
     }
 
   private:
+    void release() noexcept;
+
     SDL_GPUDevice *device_ = nullptr;
     SDL_GPUGraphicsPipeline *pipeline_ = nullptr;
+    bool owns_ = false;
 };
 
 class VertexInputBuilder
