@@ -59,7 +59,7 @@ Runtime::Runtime(const RuntimeInfo &info)
         throw SDLException("SDL_Init failed");
     }
 
-    SDL_WindowFlags flags = 0;
+    SDL_WindowFlags flags = SDL_WINDOW_HIDDEN;
     if (info_.resizable) {
         flags |= SDL_WINDOW_RESIZABLE;
     }
@@ -161,6 +161,7 @@ Runtime &Runtime::operator=(Runtime &&other) noexcept
 
 void Runtime::run(std::move_only_function<void(FrameContext)> frame)
 {
+    SDL_ShowWindow(window_);
     running_ = true;
 
     while (running_) {

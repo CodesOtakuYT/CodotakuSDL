@@ -8,35 +8,54 @@
 #include <random>
 #include <vector>
 
-struct PosVertex {
-    glm::vec2 position;
-};
-
-struct Instance {
-    glm::vec2 offset;
-    glm::vec3 color;
-    float scale;
-};
+struct PosVertex { glm::vec2 position; };
+struct Instance { glm::vec2 offset; glm::vec3 color; float scale; };
+struct Shape { Uint32 firstIndex; Uint32 indexCount; };
 
 int main() {
     codotaku::Runtime app({.title = "Triangles", .windowSize = {1024, 768}});
 
-    std::vector<PosVertex> posVerts;
-    auto idx = codotaku::generatePolygon(3, 1.0f, 0,
-                                         [&](glm::vec2 p, auto) { posVerts.push_back({p}); });
+    // Directly populate single vertex/index buffer via callbacks
+    std::vector<PosVertex> verts;
+    std::vector<uint32_t> indices;
 
+    auto vertexOffset = 0u;
+    auto pushShape = [&](uint32_t sides, float size, float rotation) {
+        auto iFirst = static_cast<Uint32>(indices.size());
+        codotaku::generatePolygon(sides, size, rotation,
+            [&](glm::vec2 p, auto) { verts.push_back({p}); },
+            [&](uint32_t i) { indices.push_back(i + vertexOffset); });
+        vertexOffset = static_cast<uint32_t>(verts.size());
+        return Shape{ iFirst, static_cast<Uint32>(indices.size() - iFirst) };
+    };
+
+    auto triShape    = pushShape(3, 1.0f, 0);
+    auto sqShape     = pushShape(4, 1.0f, glm::radians(45.0f));
+    auto circleShape = pushShape(32, 1.0f, 0);
+
+    // Generate instances
     std::mt19937 rng(42);
     std::uniform_real_distribution pd(-400.0f, 400.0f);
     std::uniform_real_distribution cd(0.0f, 1.0f);
     std::uniform_real_distribution sd(20.0f, 80.0f);
 
-    std::vector<Instance> instances;
-    for (int i = 0; i < 10; ++i)
-        instances.push_back({{pd(rng), pd(rng)}, {cd(rng), cd(rng), cd(rng)}, sd(rng)});
+    auto makeInstances = [&](int n) {
+        std::vector<Instance> inst;
+        for (int i = 0; i < n; ++i)
+            inst.push_back({{pd(rng), pd(rng)}, {cd(rng), cd(rng), cd(rng)}, sd(rng)});
+        return inst;
+    };
 
+    auto triInst    = makeInstances(10);
+    auto sqInst     = makeInstances(10);
+    auto circleInst = makeInstances(10);
+
+    // One static geometry buffer, three dynamic instance buffers
     auto belt = app.createBelt();
-    auto geom = app.createGeometry<PosVertex>(belt, posVerts, idx);
-    auto instBuf = app.createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, std::span(instances), belt);
+    auto geom = app.createGeometry<PosVertex>(belt, verts, indices);
+    auto triInstBuf    = app.createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, std::span(triInst), belt);
+    auto sqInstBuf     = app.createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, std::span(sqInst), belt);
+    auto circleInstBuf = app.createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, std::span(circleInst), belt);
     belt.flush();
 
     codotaku::VertexInputBuilder vib;
@@ -51,6 +70,16 @@ int main() {
                                      "VSMain", "PSMain", 1, 0);
 
     codotaku::Camera2D camera;
+
+    auto drawShape = [&](auto &pass, const auto &instBuf, const Shape &shape, Uint32 instanceCount) {
+        SDL_GPUBufferBinding bindings[] = {
+            geom.vertexBinding(),
+            {.buffer = instBuf.handle(), .offset = 0}
+        };
+        pass.bindVertexBuffers(0, std::span(bindings));
+        geom.bindIndexBuffer(pass);
+        pass.drawIndexed(shape.indexCount, instanceCount, shape.firstIndex, 0, 0);
+    };
 
     app.run([&](const codotaku::FrameContext &ctx) {
         auto &in = app.input();
@@ -68,17 +97,8 @@ int main() {
         pass.pushVertexUniform(0, vp);
         pass.bindPipeline(pipeline);
 
-        SDL_GPUBufferBinding bindings[] = {
-            geom.vertexBinding(),
-            {.buffer = instBuf.handle(), .offset = 0}
-        };
-
-        pass.bindVertexBuffers(0, std::span(bindings));
-        geom.bindIndexBuffer(pass);
-
-        pass.drawIndexed(
-            geom.indexCount(),
-            instances.size()
-        );
+        drawShape(pass, triInstBuf,    triShape,    static_cast<Uint32>(triInst.size()));
+        drawShape(pass, sqInstBuf,     sqShape,     static_cast<Uint32>(sqInst.size()));
+        drawShape(pass, circleInstBuf, circleShape, static_cast<Uint32>(circleInst.size()));
     });
 }
