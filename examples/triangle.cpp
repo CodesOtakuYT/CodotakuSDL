@@ -82,8 +82,19 @@ int main() {
 
     app.run([&](const codotaku::FrameContext &ctx) {
         auto &in = app.input();
-        if (in.mouseWheel != 0.0f)
-            camera.setZoom(camera.zoom() * std::pow(1.1f, in.mouseWheel));
+        if (in.mouseWheel != 0.0f) {
+            auto oldZoom = camera.zoom();
+            auto newZoom = oldZoom * std::pow(1.1f, in.mouseWheel);
+            camera.setZoom(newZoom);
+
+            auto pos = camera.position();
+            auto cx = static_cast<float>(ctx.swapchainSize.x) * 0.5f;
+            auto cy = static_cast<float>(ctx.swapchainSize.y) * 0.5f;
+            auto ratio = newZoom / oldZoom;
+            pos.x = pos.x * ratio + (static_cast<float>(in.mouseX) - cx) * (ratio - 1.0f);
+            pos.y = pos.y * ratio + (cy - static_cast<float>(in.mouseY)) * (ratio - 1.0f);
+            camera.setPosition(pos);
+        }
         if (in.mouseLeft) {
             auto pos = camera.position();
             pos.x -= in.mouseDX;
