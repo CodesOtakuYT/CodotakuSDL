@@ -26,9 +26,9 @@ int main() {
                                          [&](glm::vec2 p, auto) { posVerts.push_back({p}); });
 
     std::mt19937 rng(42);
-    std::uniform_real_distribution<float> pd(-400.0f, 400.0f);
-    std::uniform_real_distribution<float> cd(0.0f, 1.0f);
-    std::uniform_real_distribution<float> sd(20.0f, 80.0f);
+    std::uniform_real_distribution pd(-400.0f, 400.0f);
+    std::uniform_real_distribution cd(0.0f, 1.0f);
+    std::uniform_real_distribution sd(20.0f, 80.0f);
 
     std::vector<Instance> instances;
     for (int i = 0; i < 10; ++i)
@@ -36,8 +36,7 @@ int main() {
 
     auto belt = app.createBelt();
     auto geom = app.createGeometry<PosVertex>(belt, posVerts, idx);
-    auto instBuf = app.createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, instances.data(), instances.size() * sizeof(Instance),
-                                    belt);
+    auto instBuf = app.createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, std::span(instances), belt);
     belt.flush();
 
     codotaku::VertexInputBuilder vib;
@@ -66,7 +65,7 @@ int main() {
 
         auto pass = ctx.beginRenderPass();
         auto vp = camera.viewProjection(ctx.swapchainSize);
-        pass.pushVertexUniform(0, &vp, sizeof(vp));
+        pass.pushVertexUniform(0, vp);
         pass.bindPipeline(pipeline);
 
         SDL_GPUBufferBinding bindings[] = {

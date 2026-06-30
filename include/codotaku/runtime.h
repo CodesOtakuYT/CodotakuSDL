@@ -7,6 +7,7 @@
 #include <glm/vec2.hpp>
 #include <span>
 #include <stdexcept>
+#include <type_traits>
 #include <string>
 
 #include <codotaku/buffer.h>
@@ -93,10 +94,16 @@ class Runtime
         std::span<const Uint8> data,
         StagingBelt &belt) const;
 
+    template<typename T>
     [[nodiscard]] Buffer createBuffer(
         SDL_GPUBufferUsageFlags usage,
-        const void *data, size_t size,
-        StagingBelt &belt) const;
+        std::span<T> data,
+        StagingBelt &belt) const
+        requires std::is_trivially_copyable_v<std::remove_const_t<T>>
+    {
+        return createBuffer(usage, std::span<const Uint8>(
+            reinterpret_cast<const Uint8*>(data.data()), data.size_bytes()), belt);
+    }
 
     [[nodiscard]] GraphicsPipeline loadPipeline(
         const std::filesystem::path &shaderBasePath,

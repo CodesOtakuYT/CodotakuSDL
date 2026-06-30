@@ -292,14 +292,6 @@ Buffer Runtime::createBuffer(
     return buf;
 }
 
-Buffer Runtime::createBuffer(
-    SDL_GPUBufferUsageFlags usage,
-    const void *data, size_t size,
-    StagingBelt &belt) const
-{
-    return createBuffer(usage, std::span<const Uint8>(static_cast<const Uint8 *>(data), size), belt);
-}
-
 StagingBelt Runtime::createBelt(size_t initialCapacity) const
 {
     return StagingBelt(device_, initialCapacity);

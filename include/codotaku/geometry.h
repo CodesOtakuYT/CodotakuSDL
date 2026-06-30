@@ -30,8 +30,8 @@ namespace codotaku {
             auto vertSize = static_cast<Uint32>(vertices.size_bytes());
             auto idxSize = static_cast<Uint32>(indices.size_bytes());
             buffer_ = runtime.createBuffer(vertSize + idxSize);
-            belt.upload(buffer_, 0, vertices.data(), vertSize);
-            belt.upload(buffer_, vertSize, indices.data(), idxSize);
+            belt.upload(buffer_, 0, std::span(vertices));
+            belt.upload(buffer_, vertSize, std::span(indices));
         }
 
         SDL_GPUBufferBinding vertexBinding(

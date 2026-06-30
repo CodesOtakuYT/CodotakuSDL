@@ -2,6 +2,8 @@
 #define CODOTAKU_RENDER_PASS_H
 
 #include <SDL3/SDL_gpu.h>
+#include <span>
+#include <type_traits>
 
 #include <codotaku/buffer.h>
 #include <codotaku/graphics_pipeline.h>
@@ -44,12 +46,32 @@ namespace codotaku {
             Uint32 offset = 0,
             SDL_GPUIndexElementSize elementSize = SDL_GPU_INDEXELEMENTSIZE_32BIT) noexcept;
 
-        void pushVertexUniform(Uint32 slotIndex, const void *data, Uint32 length) noexcept {
-            SDL_PushGPUVertexUniformData(cmdBuf_, slotIndex, data, length);
+        template<typename T>
+        void pushVertexUniform(Uint32 slotIndex, std::span<T> data) noexcept
+            requires std::is_trivially_copyable_v<std::remove_const_t<T>>
+        {
+            SDL_PushGPUVertexUniformData(cmdBuf_, slotIndex, data.data(), static_cast<Uint32>(data.size_bytes()));
         }
 
-        void pushFragmentUniform(Uint32 slotIndex, const void *data, Uint32 length) noexcept {
-            SDL_PushGPUFragmentUniformData(cmdBuf_, slotIndex, data, length);
+        template<typename T>
+        void pushVertexUniform(Uint32 slotIndex, const T &value) noexcept
+            requires std::is_trivially_copyable_v<T>
+        {
+            SDL_PushGPUVertexUniformData(cmdBuf_, slotIndex, &value, static_cast<Uint32>(sizeof(T)));
+        }
+
+        template<typename T>
+        void pushFragmentUniform(Uint32 slotIndex, std::span<T> data) noexcept
+            requires std::is_trivially_copyable_v<std::remove_const_t<T>>
+        {
+            SDL_PushGPUFragmentUniformData(cmdBuf_, slotIndex, data.data(), static_cast<Uint32>(data.size_bytes()));
+        }
+
+        template<typename T>
+        void pushFragmentUniform(Uint32 slotIndex, const T &value) noexcept
+            requires std::is_trivially_copyable_v<T>
+        {
+            SDL_PushGPUFragmentUniformData(cmdBuf_, slotIndex, &value, static_cast<Uint32>(sizeof(T)));
         }
 
         void bindFragmentSampler(Uint32 slot, SDL_GPUTexture *texture, SDL_GPUSampler *sampler) noexcept {

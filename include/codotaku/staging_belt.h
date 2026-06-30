@@ -4,6 +4,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <cstddef>
 #include <span>
+#include <type_traits>
 #include <vector>
 
 namespace codotaku
@@ -36,9 +37,22 @@ class StagingBelt
     StagingBelt &operator=(StagingBelt &&) noexcept;
 
     void upload(const Buffer &dst, size_t dstOffset, std::span<const Uint8> data);
-    void upload(const Buffer &dst, size_t dstOffset, const void *data, size_t size);
+    template<typename T>
+    void upload(const Buffer &dst, size_t dstOffset, std::span<T> data)
+        requires std::is_trivially_copyable_v<std::remove_const_t<T>>
+    {
+        upload(dst, dstOffset, std::span<const Uint8>(
+            reinterpret_cast<const Uint8*>(data.data()), data.size_bytes()));
+    }
+
     void upload(const TextureUploadInfo &info, std::span<const Uint8> data);
-    void upload(const TextureUploadInfo &info, const void *data, size_t size);
+    template<typename T>
+    void upload(const TextureUploadInfo &info, std::span<T> data)
+        requires std::is_trivially_copyable_v<std::remove_const_t<T>>
+    {
+        upload(info, std::span<const Uint8>(
+            reinterpret_cast<const Uint8*>(data.data()), data.size_bytes()));
+    }
 
     void flush(SDL_GPUCommandBuffer *cmdBuf);
     void flush();
