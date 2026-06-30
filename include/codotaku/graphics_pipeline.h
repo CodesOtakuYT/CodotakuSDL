@@ -40,13 +40,14 @@ class GraphicsPipeline
     bool owns_ = false;
 };
 
+enum class VertexSlot : Uint32 { Vertex = 0, Instance = 1 };
+
 class VertexInputBuilder
 {
   public:
-    void addBuffer(Uint32 slot, Uint32 pitch, SDL_GPUVertexInputRate inputRate);
+    void addBuffer(VertexSlot slot, Uint32 pitch, SDL_GPUVertexInputRate inputRate);
 
     void addAttribute(
-        Uint32 bufferSlot,
         SDL_GPUVertexElementFormat format,
         Uint32 offset);
 
@@ -62,6 +63,7 @@ class VertexInputBuilder
     SDL_GPUVertexAttribute attributes_[kMaxAttributes]{};
     Uint32 numBuffers_ = 0;
     Uint32 numAttributes_ = 0;
+    Uint32 currentSlot_ = 0;
 };
 
 } // namespace codotaku

@@ -58,12 +58,12 @@ int main() {
     belt.flush();
 
     codotaku::VertexInputBuilder vib;
-    vib.addBuffer(0, sizeof(PosVertex), SDL_GPU_VERTEXINPUTRATE_VERTEX);
-    vib.addAttribute(0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, offsetof(PosVertex, position));
-    vib.addBuffer(1, sizeof(Instance), SDL_GPU_VERTEXINPUTRATE_INSTANCE);
-    vib.addAttribute(1, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, offsetof(Instance, offset));
-    vib.addAttribute(1, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, offsetof(Instance, color));
-    vib.addAttribute(1, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT, offsetof(Instance, scale));
+    vib.addBuffer(codotaku::VertexSlot::Vertex, sizeof(PosVertex), SDL_GPU_VERTEXINPUTRATE_VERTEX);
+    vib.addAttribute(SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, offsetof(PosVertex, position));
+    vib.addBuffer(codotaku::VertexSlot::Instance, sizeof(Instance), SDL_GPU_VERTEXINPUTRATE_INSTANCE);
+    vib.addAttribute(SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, offsetof(Instance, offset));
+    vib.addAttribute(SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, offsetof(Instance, color));
+    vib.addAttribute(SDL_GPU_VERTEXELEMENTFORMAT_FLOAT, offsetof(Instance, scale));
 
     auto pipeline = app.loadPipeline("examples/triangle", vib, app.swapchainFormat(),
                                      "VSMain", "PSMain", 1, 0);

@@ -47,23 +47,23 @@ void GraphicsPipeline::release() noexcept
     }
 }
 
-void VertexInputBuilder::addBuffer(Uint32 slot, Uint32 pitch, SDL_GPUVertexInputRate inputRate)
+void VertexInputBuilder::addBuffer(VertexSlot slot, Uint32 pitch, SDL_GPUVertexInputRate inputRate)
 {
+    currentSlot_ = static_cast<Uint32>(slot);
     buffers_[numBuffers_++] = {
-        .slot = slot,
+        .slot = currentSlot_,
         .pitch = pitch,
         .input_rate = inputRate,
     };
 }
 
 void VertexInputBuilder::addAttribute(
-    Uint32 bufferSlot,
     SDL_GPUVertexElementFormat format,
     Uint32 offset)
 {
     attributes_[numAttributes_] = {
         .location = numAttributes_,
-        .buffer_slot = bufferSlot,
+        .buffer_slot = currentSlot_,
         .format = format,
         .offset = offset,
     };
