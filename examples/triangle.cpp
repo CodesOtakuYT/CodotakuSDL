@@ -8,15 +8,22 @@
 #include <random>
 #include <vector>
 
-struct PosVertex { glm::vec2 position; };
-struct Instance { glm::vec2 offset; glm::vec3 color; float scale; };
+struct PosVertex {
+    glm::vec2 position;
+};
+
+struct Instance {
+    glm::vec2 offset;
+    glm::vec3 color;
+    float scale;
+};
 
 int main() {
-    codotaku::Runtime app({ .title = "Triangles", .windowSize = {1024, 768} });
+    codotaku::Runtime app({.title = "Triangles", .windowSize = {1024, 768}});
 
     std::vector<PosVertex> posVerts;
     auto idx = codotaku::generatePolygon(3, 1.0f, 0,
-        [&](glm::vec2 p, auto) { posVerts.push_back({p}); });
+                                         [&](glm::vec2 p, auto) { posVerts.push_back({p}); });
 
     std::mt19937 rng(42);
     std::uniform_real_distribution<float> pd(-400.0f, 400.0f);
@@ -29,7 +36,8 @@ int main() {
 
     auto belt = app.createBelt();
     auto geom = app.createGeometry<PosVertex>(belt, posVerts, idx);
-    auto instBuf = app.createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, instances.data(), instances.size() * sizeof(Instance), belt);
+    auto instBuf = app.createBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, instances.data(), instances.size() * sizeof(Instance),
+                                    belt);
     belt.flush();
 
     codotaku::VertexInputBuilder vib;
@@ -41,7 +49,7 @@ int main() {
     vib.addAttribute(1, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT, offsetof(Instance, scale));
 
     auto pipeline = app.loadPipeline("examples/triangle", vib, app.swapchainFormat(),
-                                      "VSMain", "PSMain", 1, 0);
+                                     "VSMain", "PSMain", 1, 0);
 
     codotaku::Camera2D camera;
 
@@ -61,6 +69,17 @@ int main() {
         pass.pushVertexUniform(0, &vp, sizeof(vp));
         pass.bindPipeline(pipeline);
 
-        geom.drawIndexed(pass, instBuf, static_cast<Uint32>(instances.size()));
+        SDL_GPUBufferBinding bindings[] = {
+            geom.vertexBinding(),
+            {.buffer = instBuf.handle(), .offset = 0}
+        };
+
+        pass.bindVertexBuffers(0, std::span(bindings));
+        geom.bindIndexBuffer(pass);
+
+        pass.drawIndexed(
+            geom.indexCount(),
+            instances.size()
+        );
     });
 }
