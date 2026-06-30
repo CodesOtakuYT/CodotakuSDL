@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
+#include <cmath>
 
 namespace codotaku
 {
@@ -55,6 +56,37 @@ class Camera2D
                        * glm::scale(glm::mat4(1.0f), glm::vec3(zoom_, zoom_, 1.0f));
 
         return projection * view;
+    }
+
+    [[nodiscard]] glm::vec2 screenToWorld(
+        glm::vec2 screenPos, glm::ivec2 viewportSize) const noexcept
+    {
+        auto inv = glm::inverse(viewProjection(viewportSize));
+        auto ndc = glm::vec4(
+            2.0f * screenPos.x / static_cast<float>(viewportSize.x) - 1.0f,
+            1.0f - 2.0f * screenPos.y / static_cast<float>(viewportSize.y),
+            0.0f, 1.0f);
+        auto world = inv * ndc;
+        return { world.x, world.y };
+    }
+
+    [[nodiscard]] glm::vec2 worldToScreen(
+        glm::vec2 worldPos, glm::ivec2 viewportSize) const noexcept
+    {
+        auto clip = viewProjection(viewportSize) * glm::vec4(worldPos, 0.0f, 1.0f);
+        return {
+            (clip.x + 1.0f) * 0.5f * static_cast<float>(viewportSize.x),
+            (1.0f - clip.y) * 0.5f * static_cast<float>(viewportSize.y)
+        };
+    }
+
+    void zoomAtMouse(glm::vec2 screenPos, glm::ivec2 viewportSize, float wheelDelta) noexcept
+    {
+        if (wheelDelta == 0.0f) return;
+        auto worldBefore = screenToWorld(screenPos, viewportSize);
+        zoom_ *= std::pow(1.1f, wheelDelta);
+        auto worldAfter = screenToWorld(screenPos, viewportSize);
+        position_ += (worldBefore - worldAfter) * zoom_;
     }
 
   private:

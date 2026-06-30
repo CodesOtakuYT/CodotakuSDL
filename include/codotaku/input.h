@@ -2,16 +2,15 @@
 #define CODOTAKU_INPUT_H
 
 #include <SDL3/SDL_events.h>
+#include <glm/vec2.hpp>
 
 namespace codotaku
 {
 
 struct Input
 {
-    float mouseX = 0.0f;
-    float mouseY = 0.0f;
-    float mouseDX = 0.0f;
-    float mouseDY = 0.0f;
+    glm::vec2 mousePos{0.0f};
+    glm::vec2 mouseDelta{0.0f};
     float mouseWheel = 0.0f;
     bool mouseLeft = false;
 
@@ -19,10 +18,10 @@ struct Input
     {
         switch (event.type) {
         case SDL_EVENT_MOUSE_MOTION:
-            mouseDX += event.motion.xrel;
-            mouseDY += event.motion.yrel;
-            mouseX = event.motion.x;
-            mouseY = event.motion.y;
+            mouseDelta.x += event.motion.xrel;
+            mouseDelta.y += event.motion.yrel;
+            mousePos.x = event.motion.x;
+            mousePos.y = event.motion.y;
             break;
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
@@ -42,8 +41,7 @@ struct Input
 
     void endFrame() noexcept
     {
-        mouseDX = 0.0f;
-        mouseDY = 0.0f;
+        mouseDelta = {};
         mouseWheel = 0.0f;
     }
 };
