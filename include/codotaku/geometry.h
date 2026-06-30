@@ -54,6 +54,24 @@ class Geometry
         pass.drawIndexed(indexCount_, instanceCount, 0, vertexOffset, firstInstance);
     }
 
+    void drawIndexed(
+        RenderPass &pass,
+        const Buffer &instanceBuf,
+        Uint32 instanceCount,
+        Uint32 instanceSlot = 1,
+        Sint32 vertexOffset = 0,
+        Uint32 firstInstance = 0) const
+    {
+        auto vertSize = vertexCount_ * sizeof(Vertex);
+        SDL_GPUBufferBinding vb[] = {
+            { .buffer = buffer_.handle(), .offset = 0 },
+            { .buffer = instanceBuf.handle(), .offset = 0 }
+        };
+        pass.bindVertexBuffers(0, vb, 2);
+        pass.bindIndexBuffer(buffer_, vertSize, indexElementSize_);
+        pass.drawIndexed(indexCount_, instanceCount, 0, vertexOffset, firstInstance);
+    }
+
     [[nodiscard]] const Buffer &buffer() const noexcept { return buffer_; }
     [[nodiscard]] Uint32 vertexCount() const noexcept { return vertexCount_; }
     [[nodiscard]] Uint32 indexCount() const noexcept { return indexCount_; }

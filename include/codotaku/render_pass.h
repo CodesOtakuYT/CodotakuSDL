@@ -38,6 +38,11 @@ class RenderPass
 
     void bindVertexBuffer(const Buffer &buffer, Uint32 slot = 0, Uint32 offset = 0) noexcept;
 
+    void bindVertexBuffers(Uint32 firstSlot, const SDL_GPUBufferBinding *bindings, Uint32 count) noexcept
+    {
+        SDL_BindGPUVertexBuffers(pass_, firstSlot, bindings, count);
+    }
+
     void bindIndexBuffer(
         const Buffer &buffer,
         Uint32 offset = 0,
